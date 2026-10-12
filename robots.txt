@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://felipeevangelistaleitedasilva.github.io/sitemap.xml

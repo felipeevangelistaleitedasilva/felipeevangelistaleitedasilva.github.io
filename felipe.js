@@ -1,0 +1,21 @@
+(()=>{'use strict';
+const $=s=>document.querySelector(s);const $$=s=>[...document.querySelectorAll(s)];
+const theme=$('#theme');const root=document.documentElement;
+const applyTheme=value=>{root.dataset.theme=value;theme.setAttribute('aria-pressed',String(value==='dark'));theme.setAttribute('aria-label',value==='dark'?'Switch to light mode':'Switch to dark mode');};
+let saved;try{saved=localStorage.getItem('felipe-theme');}catch{}
+applyTheme(saved==='light'||saved==='dark'?saved:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'));
+theme.addEventListener('click',()=>{const value=root.dataset.theme==='dark'?'light':'dark';applyTheme(value);try{localStorage.setItem('felipe-theme',value);}catch{}});
+const menu=$('#menu'),nav=$('#navigation');
+const closeMenu=()=>{nav.classList.remove('open');document.body.classList.remove('menu-open');menu.setAttribute('aria-expanded','false');menu.setAttribute('aria-label','Open navigation');};
+menu.addEventListener('click',()=>{const isOpen=nav.classList.toggle('open');document.body.classList.toggle('menu-open',isOpen);menu.setAttribute('aria-expanded',String(isOpen));menu.setAttribute('aria-label',isOpen?'Close navigation':'Open navigation');});
+nav.addEventListener('click',event=>{if(event.target.closest('a'))closeMenu();});
+document.addEventListener('keydown',event=>{if(event.key==='Escape'&&nav.classList.contains('open')){closeMenu();menu.focus();}});
+matchMedia('(min-width: 761px)').addEventListener('change',event=>{if(event.matches)closeMenu();});
+const progress=$('.progress');let scheduled=false;
+const scrollUpdate=()=>{const height=root.scrollHeight-innerHeight;progress.style.width=(height>0?scrollY/height*100:0)+'%';scheduled=false;};
+addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(scrollUpdate);}},{passive:true});addEventListener('resize',scrollUpdate);scrollUpdate();
+const observer=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){$$('#navigation a').forEach(link=>{if(link.getAttribute('href')==='#'+entry.target.id)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current');});}});},{rootMargin:'-20% 0px -65% 0px',threshold:0});$$('main section[id]').forEach(section=>observer.observe(section));
+const search=$('#experience-search');search.addEventListener('input',()=>{const query=search.value.toLocaleLowerCase().trim();let count=0;$$('[data-experience]').forEach(entry=>{entry.hidden=!entry.dataset.search.includes(query);if(!entry.hidden)count++;});$('#result-status').textContent=count+' '+(count===1?'role':'roles')+(query?' matching “'+search.value.trim()+'”':'');$('#no-results').hidden=count!==0;});
+$('#copy-email').addEventListener('click',async()=>{try{await navigator.clipboard.writeText('felipeevanemp@gmail.com');$('#copy-status').textContent='Email address copied.';}catch{$('#copy-status').textContent='Select and copy the email address above.';}});
+$('#contact-form').addEventListener('submit',event=>{event.preventDefault();const name=$('#contact-name').value.trim(),email=$('#contact-email').value.trim(),subject=$('#contact-subject').value.trim(),message=$('#contact-message').value.trim();if(!name||!email||!subject||!message){$('#form-status').textContent='Please complete each field.';return;}const body=message+'\n\nFrom: '+name+'\nReply email: '+email;location.href='mailto:felipeevanemp@gmail.com?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);$('#form-status').textContent='Your email draft is ready to open. You can also email Felipe directly above.';});
+})();
